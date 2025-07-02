@@ -1,0 +1,14 @@
+{
+    "name": "realtime-caption-mvp",
+    "version": "1.0.0",
+    "main": "electron/main.js",
+    "scripts": {
+        "start": "electron ."
+    },
+    "devDependencies": {
+        "electron": "^28.3.3"
+    },
+    "dependencies": {
+        "ws": "^8.18.2"
+    }
+}

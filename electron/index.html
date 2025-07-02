@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>实时字幕</title>
+  <style>
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: #000000cc;  /* 更明确的黑色半透明 */
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 20px;
+      overflow: hidden;
+    }
+    #subtitles {
+      padding: 20px;
+      height: 100%;
+      box-sizing: border-box;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .pair {
+      margin-bottom: 12px;
+      width: 100%;
+      max-width: 90vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .info, .translated {
+      color: #ffffff;
+      font-size: 1.2em;
+      margin-bottom: 2px;
+      font-family: 'Segoe UI', 'Noto Sans Arabic', 'Arial', 'sans-serif';
+      unicode-bidi: plaintext;
+    }
+    .translated {
+      color: #facc15;
+      font-size: 1em;
+    }
+    .language-selector {
+      width: 100%;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .language-selector label {
+      color: #fff;
+      font-size: 1em;
+    }
+    .language-selector select {
+      font-size: 1em;
+      padding: 2px 8px;
+    }
+    .device-selector {
+      width: 100%;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .device-selector label {
+      color: #fff;
+      font-size: 1em;
+    }
+    .device-selector select {
+      font-size: 1em;
+      padding: 2px 8px;
+    }
+    .arabic {
+      direction: rtl;
+      text-align: right;
+      font-family: 'Noto Sans Arabic', 'Arial', 'Segoe UI', 'sans-serif';
+    }
+  </style>
+</head>
+<body>
+  <div class="language-selector">
+    <label for="target-lang">目标语言：</label>
+    <select id="target-lang">
+      <option value="en" selected>英语 English</option>
+      <option value="zh">中文 Chinese</option>
+      <option value="ja">日语 Japanese</option>
+      <option value="ko">韩语 Korean</option>
+      <option value="fr">法语 French</option>
+      <option value="de">德语 German</option>
+      <option value="es">西班牙语 Spanish</option>
+      <option value="ru">俄语 Russian</option>
+      <!-- <option value="ar">阿拉伯语 Arabic</option> -->
+      <option value="vi">越南语 Vietnamese</option>
+      <option value="th">泰语 Thai</option>
+      <option value="id">印尼语 Indonesian</option>
+      <option value="pt">葡萄牙语 Portuguese</option>
+      <option value="it">意大利语 Italian</option>
+      <option value="hi">印地语 Hindi</option>
+      <!-- <option value="yue">粤语 Cantonese</option> -->
+    </select>
+  </div>
+  <div class="device-selector">
+    <label for="audio-device">采集设备：</label>
+    <select id="audio-device">
+      <option value="">加载中...</option>
+    </select>
+  </div>
+  <div id="subtitles">等待字幕中...</div>
+  <script src="renderer.js"></script>
+</body>
+</html>
