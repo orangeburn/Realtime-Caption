@@ -36,11 +36,10 @@
 ```
 Realtime-Caption/
 ├── a4s/                # 后端主服务（推荐使用此目录下的 server_wss_split.py）
-├── backend/            # 其它后端实现（如有）
 ├── python/             # 系统音频捕获模块（WASAPI + Sounddevice）
 ├── electron/           # Electron前端（字幕显示界面）
 ├── nllb200_ct2/        # nllb200翻译模型文件（需另行下载）
-├── requirements.txt    # Python依赖（如有）
+├── requirements.txt    # Python依赖
 └── README.md
 ```
 
