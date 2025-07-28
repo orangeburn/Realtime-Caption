@@ -40,12 +40,11 @@ Realtime-Caption/
 ├── a4s/                # 后端主服务（推荐使用此目录下的 server_wss_split.py）
 ├── python/             # 系统音频捕获模块（WASAPI + Sounddevice）
 ├── electron/           # Electron前端（字幕显示界面）
-├── nllb200_ct2/        # nllb200翻译模型文件（需另行下载）
 ├── requirements.txt    # Python依赖（如有）
 └── README.md
 ```
 
-> 说明：`api4sensevoice/`、`SenseVoice/` 目录已弃用，推荐仅使用 `a4s/` 及相关目录。
+> 说明：`api4sensevoice/`、`SenseVoice/` 目录已弃用，推荐仅使用 `a4s/` 及相关目录。ASR和翻译模型文件自动下载到系统缓存目录，不占用项目空间。
 
 ---
 
@@ -95,29 +94,28 @@ npm start
 
 ---
 
-## 📦 大文件管理与模型恢复
+## 📦 模型自动管理
 
-本项目未在仓库中直接存储大模型文件（如 nllb200_ct2 下的 model.bin 等），请按如下方式获取和恢复：
+**翻译模型已纳入统一管理，无需用户手动下载！**
 
-1. 访问 [JustFrederik/nllb-200-distilled-600M-ct2-int8](https://huggingface.co/JustFrederik/nllb-200-distilled-600M-ct2-int8) 下载所需模型文件。
-2. 将下载的模型文件（如 model.bin、sentencepiece.bpe.model、tokenizer.json）放入 `nllb200_ct2/` 目录下。
-3.  **注意：** 模型大文件已被 `.gitignore` 排除，需单独下载到本地。
-4. **nllb200_ct2 依赖 [CTranslate2](https://github.com/OpenNMT/CTranslate2) 推理引擎，已在 requirements.txt 中声明。请确保已正确安装。**
+- ✅ **ASR模型**：首次运行后端时自动下载SenseVoice语音识别模型
+- ✅ **翻译模型**：首次运行后端时自动下载nllb200翻译模型  
+- ✅ **模型热更新**：支持运行时动态更新模型文件
+- 🔧 **依赖管理**：nllb200翻译依赖[CTranslate2](https://github.com/OpenNMT/CTranslate2)推理引擎，已在requirements.txt中声明
 
 ---
 
 ## 🧩 依赖管理说明
 
 - **Python 依赖**：请使用根目录下的 `requirements.txt` 安装，虚拟环境（如 venv、torch-env）不会纳入版本控制。
-- **CTranslate2 依赖**：nllb200_ct2 翻译模型依赖 [CTranslate2](https://github.com/OpenNMT/CTranslate2) 推理引擎，已在 requirements.txt 中声明。若遇到安装问题，可手动执行：
+- **模型文件**：ASR和翻译模型已实现自动下载管理，首次启动后端时会自动下载到系统缓存目录，不会占用项目空间。
+- **CTranslate2 依赖**：nllb200翻译模型依赖 [CTranslate2](https://github.com/OpenNMT/CTranslate2) 推理引擎，已在 requirements.txt 中声明。若遇到安装问题，可手动执行：
 
   ```bash
   pip install ctranslate2
   ```
   
-  CTranslate2 用于高效加载和推理 nllb200_ct2 目录下的多语种翻译模型。
 - **Node.js 依赖**：请在 `electron/` 目录下运行 `npm install`，`node_modules` 目录不会纳入版本控制。
-- **模型文件**：需手动下载或本地恢复，避免仓库存储大文件。
 
 ---
 
