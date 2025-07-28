@@ -1,0 +1,118 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+.Python
+.env
+.venv/
+venv/
+env/
+*.egg-info/
+build/
+dist/
+
+# Node / Electron
+node_modules/
+.vscode/
+out/
+*.tsbuildinfo
+
+# 日志文件
+*.log
+logs/
+*.tmp
+*.swp
+*.bak
+translate_server.log
+
+# 机器学习模型和权重文件
+/models/
+/models_cache/
+/torch-env/
+/nllb200_ct2/
+*.pt
+*.pth
+*.safetensors
+*.onnx
+*.pkl
+*.joblib
+*.h5
+*.hdf5
+*.npz
+*.npy
+*.bin
+*.model
+*.dat
+*.pak
+*.checkpoint
+*.ckpt
+
+# 音频文件（录音等）
+*.wav
+*.mp3
+*.flac
+*.aac
+*.ogg
+*.m4a
+*.wma
+
+# 视频文件
+*.mp4
+*.avi
+*.mkv
+*.mov
+*.wmv
+*.flv
+
+# 系统文件
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/settings.json
+desktop.ini
+*.lnk
+
+# 数据库文件
+*.sqlite3
+*.db
+*.sqlite
+
+# 压缩文件
+*.zip
+*.rar
+*.7z
+*.tar.gz
+*.tar.bz2
+
+# Claude 配置文件
+.claude/
+CLAUDE.md
+
+# 测试和覆盖率文件
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# 开发和临时文件
+debug_*.py
+test_*.py
+*_test.py
+tmp/
+temp/
+scratch/
+
+# 环境变量文件-不要提交密码
+.env.local
+.env.production
+config.local.py
+secrets.json
+
+# Git 配置
+*.orig
+*.rej
+*.patch

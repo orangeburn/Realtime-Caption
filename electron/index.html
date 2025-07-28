@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>实时字幕</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: #1a1a1a;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      overflow: hidden;
+    }
+    
+    .controls-container {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 20px;
+      padding: 8px 12px;
+      background: #2a2a2a;
+      border-bottom: 1px solid #3a3a3a;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      opacity: 0;
+      transform: translateY(-100%);
+      transition: all 0.3s ease;
+      -webkit-app-region: drag;
+    }
+    
+    .controls-container.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .language-selector,
+    .device-selector,
+    .translation-toggle,
+    .language-selector select,
+    .device-selector select,
+    .translate-icon,
+    .device-icon {
+      -webkit-app-region: no-drag;
+    }
+    
+    .language-selector, .device-selector, .translation-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .language-selector {
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    .language-selector.hidden {
+      opacity: 0;
+      visibility: hidden;
+      display: none;
+    }
+    
+    .language-selector label, .device-selector label {
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    
+    .device-icon {
+      width: 16px;
+      height: 16px;
+      fill: #ffffff;
+      margin-right: 6px;
+    }
+    
+    .translation-toggle {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .translate-icon {
+      width: 20px;
+      height: 20px;
+      fill: #6a6a6a;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      padding: 4px;
+      border-radius: 4px;
+    }
+    
+    .translate-icon:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      transform: scale(1.1);
+    }
+    
+    .translate-icon.active {
+      fill: #007aff;
+    }
+    
+    .translate-icon.loading {
+      fill: #ffd60a;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .language-selector select, .device-selector select {
+      font-size: 13px;
+      padding: 4px 8px;
+      background: #3a3a3a;
+      border: 1px solid #4a4a4a;
+      border-radius: 4px;
+      color: #ffffff;
+      outline: none;
+    }
+    
+    .language-selector select:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .language-selector select:focus, .device-selector select:focus {
+      border-color: #007aff;
+    }
+    
+    .language-selector select option, .device-selector select option {
+      background: #3a3a3a;
+      color: #ffffff;
+    }
+    
+    #subtitles {
+      padding: 80px 24px 24px 24px;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      text-align: center;
+      box-sizing: border-box;
+      position: relative;
+    }
+    
+    .subtitles-container {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      transition: transform 0.8s ease-out;
+    }
+    
+    .pair {
+      margin-bottom: 24px;
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: opacity 0.8s ease-out;
+    }
+    
+    .pair.old {
+      opacity: 0.4;
+    }
+    
+    .info, .translated {
+      border-radius: 8px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans Arabic', sans-serif;
+      width: 100%;
+      box-sizing: border-box;
+      line-height: 1.4;
+    }
+    
+    .info {
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 400;
+      padding: 8px 20px 4px 20px;
+      margin-bottom: 0;
+    }
+    
+    .translated {
+      color: #ffd60a;
+      font-size: 16px;
+      font-weight: 500;
+      padding: 4px 20px 8px 20px;
+      margin-bottom: 0;
+    }
+    
+    .arabic {
+      direction: rtl;
+      text-align: right;
+    }
+    
+    /* 启动日志样式 */
+    .startup-mode {
+      color: #00d4aa;
+      font-family: 'SF Mono', 'Monaco', monospace;
+      font-size: 14px;
+      background: #2a2a2a;
+      border-radius: 8px;
+      padding: 16px;
+      max-width: 600px;
+    }
+    
+    .startup-mode .log-line {
+      margin-bottom: 4px;
+      opacity: 0.8;
+    }
+    
+    .startup-mode .log-backend { color: #00d4aa; }
+    .startup-mode .log-frontend { color: #007aff; }
+    .startup-mode .log-audio { color: #ff9f0a; }
+    .startup-mode .log-system { color: #ffffff; }
+    
+    .startup-mode .progress {
+      margin-top: 12px;
+      font-size: 16px;
+      color: #ffffff;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    /* 滚动条 */
+    #subtitles::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    #subtitles::-webkit-scrollbar-thumb {
+      background: #4a4a4a;
+      border-radius: 2px;
+    }
+    
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .controls-container {
+        flex-direction: column;
+        gap: 12px;
+      }
+      
+      .info { font-size: 16px; }
+      .translated { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="controls-container">
+    <div class="device-selector">
+      <svg class="device-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+        <path d="M544 830.4V960h-64v-129.6c-161.6-16-288-152.8-288-318.4h64c0 140.8 115.2 256 256 256s256-115.2 256-256h64c0 165.6-126.4 302.4-288 318.4zM512 640c70.4 0 128-57.6 128-128V192c0-70.4-57.6-128-128-128s-128 57.6-128 128v320c0 70.4 57.6 128 128 128z" fill="#ffffff" />
+      </svg>
+      <select id="audio-device">
+        <option value="">加载中...</option>
+      </select>
+    </div>
+    <div class="translation-toggle">
+      <svg class="translate-icon" id="translate-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+        <path d="M426.666667 921.6c-161.3824 0-295.253333-106.154667-319.863467-244.497067l34.7136 34.7136a17.134933 17.134933 0 0 0 24.1664 0 17.066667 17.066667 0 0 0 0-24.132266l-68.266667-68.266667a17.271467 17.271467 0 0 0-5.597866-3.720533c-1.194667-0.477867-2.423467-0.546133-3.6864-0.750934C87.210667 614.8096 86.3232 614.4 85.333333 614.4c-1.297067 0-2.4576 0.477867-3.652266 0.750933-0.9216 0.2048-1.911467 0.2048-2.798934 0.580267a17.885867 17.885867 0 0 0-5.700266 3.7888L5.0176 687.684267a17.066667 17.066667 0 0 0 24.132267 24.132266l41.8816-41.8816C92.16 830.634667 243.438933 955.733333 426.666667 955.733333a17.066667 17.066667 0 0 0 0-34.133333z m198.485333-1.194667a17.066667 17.066667 0 0 0 22.152533-9.5232L683.997867 819.2h168.0384l36.693333 91.682133a16.9984 16.9984 0 0 0 22.186667 9.5232 17.066667 17.066667 0 0 0 9.489066-22.186666l-136.533333-341.333334c-5.154133-12.970667-26.555733-12.970667-31.675733 0l-136.533334 341.333334a17.066667 17.066667 0 0 0 9.489067 22.186666z m142.848-311.227733L838.3488 785.066667h-140.731733l70.382933-175.889067zM631.466667 102.4c144.452267 0 264.260267 106.222933 286.208 244.6336l-35.293867-34.9184a17.066667 17.066667 0 1 0-23.995733 24.2688l66.7648 66.082133A16.827733 16.827733 0 0 0 938.666667 409.6l0.341333-0.068267 0.375467 0.068267c1.604267-0.170667 3.1744-0.648533 4.744533-1.092267 0.4096-0.136533 0.887467-0.136533 1.262933-0.3072a15.9744 15.9744 0 0 0 6.109867-3.720533l67.549867-68.266667a17.066667 17.066667 0 0 0-24.2688-23.995733l-41.540267 41.984C934.1952 193.4336 797.252267 68.266667 631.466667 68.266667a17.066667 17.066667 0 0 0 0 34.133333z m-204.8 68.266667H307.2V119.466667a17.066667 17.066667 0 0 0-34.133333 0V170.666667H153.6a17.066667 17.066667 0 0 0 0 34.133333h18.7392c8.6016 50.8928 52.565333 109.738667 94.4128 155.921067a875.861333 875.861333 0 0 1-55.944533 52.9408 17.066667 17.066667 0 0 0 22.1184 26.0096c2.6624-2.2528 27.2384-23.381333 57.207466-54.033067 29.969067 30.685867 54.5792 51.780267 57.207467 54.033067a17.066667 17.066667 0 1 0 22.1184-26.0096 848.554667 848.554667 0 0 1-55.944533-52.9408C355.362133 314.538667 399.325867 255.6928 407.927467 204.8h18.7392a17.066667 17.066667 0 0 0 0-34.133333z m-136.533334 165.0688C252.2112 293.614933 215.8592 244.394667 207.018667 204.8h166.1952C364.407467 244.394667 328.055467 293.614933 290.133333 335.735467zM1006.933333 477.866667H546.133333V17.066667a17.066667 17.066667 0 0 0-17.066666-17.066667H17.066667a17.066667 17.066667 0 0 0-17.066667 17.066667v512a17.066667 17.066667 0 0 0 17.066667 17.066666H477.866667v460.8a17.066667 17.066667 0 0 0 17.066666 17.066667h512a17.066667 17.066667 0 0 0 17.066667-17.066667v-512a17.066667 17.066667 0 0 0-17.066667-17.066666z m-529.066666 17.066666v17.066667H34.133333V34.133333h477.866667v443.733334h-17.066667a17.066667 17.066667 0 0 0-17.066666 17.066666zM989.866667 989.866667H512V512h477.866667v477.866667z" />
+      </svg>
+    </div>
+    <div class="language-selector hidden">
+      <select id="target-lang">
+        <option value="en" selected>English</option>
+        <option value="zh">中文</option>
+        <option value="ja">日本語</option>
+        <option value="ko">한국어</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="es">Español</option>
+        <option value="ru">Русский</option>
+        <!-- <option value="ar">العربية</option> -->
+        <option value="vi">Tiếng Việt</option>
+        <option value="th">ไทย</option>
+        <option value="id">Bahasa Indonesia</option>
+        <option value="pt">Português</option>
+        <option value="it">Italiano</option>
+        <option value="hi">हिन्दी</option>
+        <!-- <option value="yue">粤语 Cantonese</option> -->
+      </select>
+    </div>
+  </div>
+  <div id="subtitles">
+    <div class="subtitles-container"></div>
+  </div>
+  
+  <script src="renderer.js"></script>
+</body>
+</html>
