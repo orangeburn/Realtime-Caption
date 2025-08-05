@@ -16,6 +16,7 @@ window.addEventListener('DOMContentLoaded', () => {
   
   // 记录模式相关变量
   let recordMode = false; // 记录模式开关
+  let pendingModeSwitch = false; // 标记是否有待处理的模式切换
   let recordHistory = []; // 记录的字幕历史
   let editEventsBound = false; // 标记是否已经绑定编辑事件
   let isEditingRecord = false; // 标记是否正在编辑记录
@@ -169,6 +170,20 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 记录模式管理
   async function toggleRecordMode() {
+    // 如果当前在记录模式且正在录音，先弹出对话框确认
+    if (recordMode && recordingState !== 'idle') {
+      console.log('[Record] 记录模式下正在录音，弹出结束录音对话框');
+      pendingModeSwitch = true; // 标记需要在对话框关闭后切换模式
+      stopRecording(); // 这会触发录音结束和对话框显示
+      return; // 不继续执行模式切换，等待对话框操作
+    }
+    
+    // 执行实际的模式切换
+    await performModeSwitch();
+  }
+  
+  // 实际执行模式切换的函数
+  async function performModeSwitch() {
     recordMode = !recordMode;
     const recordIcon = document.getElementById('record-icon');
     const floatingRecordPanel = document.getElementById('floating-record-panel');
@@ -207,11 +222,7 @@ window.addEventListener('DOMContentLoaded', () => {
       updateRecordDisplay();
       console.log('[Record] 记录模式已启用 - 点击右下角录音按钮开始录音');
     } else {
-      // 关闭记录模式 - 如果正在录音，先停止录音
-      if (recordingState !== 'idle') {
-        stopRecording();
-      }
-      
+      // 关闭记录模式
       recordIcon.classList.remove('active');
       body.classList.remove('record-mode');
       
@@ -263,6 +274,9 @@ window.addEventListener('DOMContentLoaded', () => {
         }, 50);
       }
     }
+    
+    // 重置模式切换标记
+    pendingModeSwitch = false;
   }
 
   // 更新录音UI状态（简化版 - 移除暂停功能）
@@ -695,62 +709,63 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
       
       <div style="background: #333; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <span style="color: #ccc; font-size: 14px;">字幕条数</span>
-          <span style="color: #fff; font-weight: 500;">${recordHistory.length} 条</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #444;">
+          <div>
+            <span style="color: #ccc; font-size: 14px;">字幕条数</span>
+            <span style="color: #fff; font-weight: 500; margin-left: 8px;">${recordHistory.length}条</span>
+          </div>
+          <button id="export-subtitles-btn" style="
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+          ">导出</button>
         </div>
-        ${duration > 0 ? `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <span style="color: #ccc; font-size: 14px;">录音时长</span>
-          <span style="color: #fff; font-weight: 500;">${duration.toFixed(1)} 秒</span>
-        </div>` : ''}
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="color: #ccc; font-size: 14px;">音频文件</span>
-          <span style="color: #4CAF50; font-weight: 500;">已保存</span>
-        </div>
-      </div>
-      
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <button id="export-subtitles-btn" style="
-          background: #4CAF50;
-          color: white;
-          border: none;
-          padding: 14px 20px;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 15px;
-          font-weight: 500;
-          width: 100%;
-          transition: all 0.2s ease;
-        ">导出字幕文件</button>
         
-        <div style="display: flex; gap: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #444;">
+          <div>
+            <span style="color: #ccc; font-size: 14px;">录音文件</span>
+            <span style="color: #4CAF50; font-weight: 500; margin-left: 8px;">已保存</span>
+          </div>
           <button id="export-audio-btn" style="
             background: #2196F3;
             color: white;
             border: none;
-            padding: 12px 16px;
-            border-radius: 8px;
+            padding: 6px 12px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 500;
-            flex: 1;
             transition: all 0.2s ease;
           " title="打开录音文件夹">打开文件夹</button>
-          
-          <button id="skip-export-btn" style="
-            background: transparent;
-            color: #ccc;
-            border: 1px solid #555;
-            padding: 12px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            flex: 1;
-            transition: all 0.2s ease;
-          ">跳过</button>
         </div>
+        
+        ${duration > 0 ? `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+          <div>
+            <span style="color: #ccc; font-size: 14px;">录音时长</span>
+            <span style="color: #fff; font-weight: 500; margin-left: 8px;">${duration.toFixed(1)}秒</span>
+          </div>
+        </div>` : ''}
+      </div>
+      
+      <div style="display: flex; justify-content: center;">
+        <button id="skip-export-btn" style="
+          background: transparent;
+          color: #ccc;
+          border: 1px solid #555;
+          padding: 12px 24px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 500;
+          transition: all 0.2s ease;
+        ">结束</button>
       </div>
     `;
     
@@ -797,6 +812,12 @@ window.addEventListener('DOMContentLoaded', () => {
       }
       exportDialogShown = false; // 重置状态，允许后续显示其他对话框
       resetRecordingStateAndRefreshSubtitles();
+      
+      // 如果有待处理的模式切换，执行切换
+      if (pendingModeSwitch) {
+        console.log('[Export] 检测到待处理的模式切换，执行模式切换');
+        performModeSwitch();
+      }
     };
     
     exportSubtitlesBtn.addEventListener('click', () => {
@@ -884,63 +905,64 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
       
       <div style="background: #333; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <span style="color: #ccc; font-size: 14px;">字幕条数</span>
-          <span style="color: #fff; font-weight: 500;">${recordHistory.length} 条</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #444;">
+          <div>
+            <span style="color: #ccc; font-size: 14px;">字幕条数</span>
+            <span style="color: #fff; font-weight: 500; margin-left: 8px;">${recordHistory.length}条</span>
+          </div>
+          <button id="export-subtitles-btn" style="
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+          ">导出</button>
         </div>
-        ${duration > 0 ? `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <span style="color: #ccc; font-size: 14px;">录音时长</span>
-          <span style="color: #fff; font-weight: 500;">${duration.toFixed(1)} 秒</span>
-        </div>` : ''}
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="color: #ccc; font-size: 14px;">音频文件</span>
-          <span style="color: ${audioAvailable ? '#4CAF50' : '#ff6b6b'}; font-weight: 500;">${audioAvailable ? '已保存' : '不可用'}</span>
-        </div>
-      </div>
-      
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <button id="export-subtitles-btn" style="
-          background: #4CAF50;
-          color: white;
-          border: none;
-          padding: 14px 20px;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 15px;
-          font-weight: 500;
-          width: 100%;
-          transition: all 0.2s ease;
-        ">导出字幕文件</button>
         
-        <div style="display: flex; gap: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #444;">
+          <div>
+            <span style="color: #ccc; font-size: 14px;">录音文件</span>
+            <span style="color: ${audioAvailable ? '#4CAF50' : '#ff6b6b'}; font-weight: 500; margin-left: 8px;">${audioAvailable ? '已保存' : '不可用'}</span>
+          </div>
           <button id="export-audio-btn" style="
             background: ${audioAvailable ? '#2196F3' : '#666'};
             color: white;
             border: none;
-            padding: 12px 16px;
-            border-radius: 8px;
+            padding: 6px 12px;
+            border-radius: 6px;
             cursor: ${audioAvailable ? 'pointer' : 'not-allowed'};
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 500;
-            flex: 1;
             transition: all 0.2s ease;
             opacity: ${audioAvailable ? '1' : '0.6'};
           " ${audioAvailable ? '' : 'disabled'} title="${audioAvailable ? (window.isDualStreamRecording ? '打开录音文件夹' : '导出音频文件') : '音频文件不可用'}">${window.isDualStreamRecording ? '打开文件夹' : '导出音频'}</button>
-          
-          <button id="skip-export-btn" style="
-            background: transparent;
-            color: #ccc;
-            border: 1px solid #555;
-            padding: 12px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            flex: 1;
-            transition: all 0.2s ease;
-          ">跳过</button>
         </div>
+        
+        ${duration > 0 ? `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
+          <div>
+            <span style="color: #ccc; font-size: 14px;">录音时长</span>
+            <span style="color: #fff; font-weight: 500; margin-left: 8px;">${duration.toFixed(1)}秒</span>
+          </div>
+        </div>` : ''}
+      </div>
+      
+      <div style="display: flex; justify-content: center;">
+        <button id="skip-export-btn" style="
+          background: transparent;
+          color: #ccc;
+          border: 1px solid #555;
+          padding: 12px 24px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 500;
+          transition: all 0.2s ease;
+        ">结束</button>
       </div>
     `;
     
@@ -992,6 +1014,12 @@ window.addEventListener('DOMContentLoaded', () => {
       
       // 清理完毕后重置录音状态并刷新字幕显示
       resetRecordingStateAndRefreshSubtitles();
+      
+      // 如果有待处理的模式切换，执行切换
+      if (pendingModeSwitch) {
+        console.log('[Export] 检测到待处理的模式切换，执行模式切换');
+        performModeSwitch();
+      }
     };
     
     exportSubtitlesBtn.addEventListener('click', () => {
