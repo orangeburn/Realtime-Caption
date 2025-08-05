@@ -684,50 +684,73 @@ window.addEventListener('DOMContentLoaded', () => {
     `;
     
     dialog.innerHTML = `
-      <h3 style="margin-top: 0; color: #4CAF50;">🎉 录音完成！</h3>
-      <div style="margin: 20px 0; color: #ccc;">
-        <p>记录了 <strong>${recordHistory.length}</strong> 条字幕</p>
-        ${duration > 0 ? `<p>录音时长: <strong>${duration.toFixed(1)}</strong> 秒</p>` : ''}
-        <p style="color: #4CAF50;" id="audio-status-text">✅ 音频文件已保存到录音文件夹</p>
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="width: 48px; height: 48px; background: #4CAF50; border-radius: 50%; margin: 0 auto 16px auto; display: flex; align-items: center; justify-content: center;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2 style="margin: 0 0 8px 0; color: #ffffff; font-size: 20px; font-weight: 600;">录音完成</h2>
+        <p style="margin: 0; color: #888; font-size: 14px;">录音和字幕已成功保存</p>
       </div>
-      <div style="margin: 25px 0; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px;">
+      
+      <div style="background: #333; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="color: #ccc; font-size: 14px;">字幕条数</span>
+          <span style="color: #fff; font-weight: 500;">${recordHistory.length} 条</span>
+        </div>
+        ${duration > 0 ? `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="color: #ccc; font-size: 14px;">录音时长</span>
+          <span style="color: #fff; font-weight: 500;">${duration.toFixed(1)} 秒</span>
+        </div>` : ''}
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: #ccc; font-size: 14px;">音频文件</span>
+          <span style="color: #4CAF50; font-weight: 500;">已保存</span>
+        </div>
+      </div>
+      
+      <div style="display: flex; flex-direction: column; gap: 12px;">
         <button id="export-subtitles-btn" style="
           background: #4CAF50;
           color: white;
           border: none;
-          padding: 12px 20px;
-          border-radius: 6px;
+          padding: 14px 20px;
+          border-radius: 8px;
           cursor: pointer;
-          font-size: 14px;
+          font-size: 15px;
           font-weight: 500;
-          min-width: 120px;
-        ">📝 导出字幕</button>
-        <button id="export-audio-btn" style="
-          background: #2196F3;
-          color: white;
-          border: none;
-          padding: 12px 20px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 14px;
-          font-weight: 500;
-          min-width: 120px;
-        " title="打开录音文件夹">
-          📁 打开文件夹
-        </button>
-        <button id="skip-export-btn" style="
-          background: #666;
-          color: white;
-          border: none;
-          padding: 12px 20px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 14px;
-          min-width: 120px;
-        ">⏭️ 跳过</button>
-      </div>
-      <div style="font-size: 12px; color: #888; margin-top: 15px;">
-        <span id="export-hint">字幕文件为 TXT 格式，包含时间戳信息<br>音频文件为 WAV 格式，已保存到录音文件夹 ✅</span>
+          width: 100%;
+          transition: all 0.2s ease;
+        ">导出字幕文件</button>
+        
+        <div style="display: flex; gap: 12px;">
+          <button id="export-audio-btn" style="
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            flex: 1;
+            transition: all 0.2s ease;
+          " title="打开录音文件夹">打开文件夹</button>
+          
+          <button id="skip-export-btn" style="
+            background: transparent;
+            color: #ccc;
+            border: 1px solid #555;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            flex: 1;
+            transition: all 0.2s ease;
+          ">跳过</button>
+        </div>
       </div>
     `;
     
@@ -737,6 +760,36 @@ window.addEventListener('DOMContentLoaded', () => {
     const exportSubtitlesBtn = document.getElementById('export-subtitles-btn');
     const exportAudioBtn = document.getElementById('export-audio-btn');
     const skipBtn = document.getElementById('skip-export-btn');
+    
+    // 添加按钮悬停效果
+    exportSubtitlesBtn.addEventListener('mouseenter', () => {
+      exportSubtitlesBtn.style.background = '#45a049';
+      exportSubtitlesBtn.style.transform = 'translateY(-1px)';
+    });
+    exportSubtitlesBtn.addEventListener('mouseleave', () => {
+      exportSubtitlesBtn.style.background = '#4CAF50';
+      exportSubtitlesBtn.style.transform = 'translateY(0)';
+    });
+    
+    exportAudioBtn.addEventListener('mouseenter', () => {
+      exportAudioBtn.style.background = '#1976D2';
+      exportAudioBtn.style.transform = 'translateY(-1px)';
+    });
+    exportAudioBtn.addEventListener('mouseleave', () => {
+      exportAudioBtn.style.background = '#2196F3';
+      exportAudioBtn.style.transform = 'translateY(0)';
+    });
+    
+    skipBtn.addEventListener('mouseenter', () => {
+      skipBtn.style.borderColor = '#777';
+      skipBtn.style.color = '#fff';
+      skipBtn.style.transform = 'translateY(-1px)';
+    });
+    skipBtn.addEventListener('mouseleave', () => {
+      skipBtn.style.borderColor = '#555';
+      skipBtn.style.color = '#ccc';
+      skipBtn.style.transform = 'translateY(0)';
+    });
     
     const cleanup = () => {
       if (document.body.contains(dialog)) {
@@ -820,50 +873,74 @@ window.addEventListener('DOMContentLoaded', () => {
       `<p style="color: #4CAF50;">✅ 音频文件已下载: ${window.lastDownloadedAudioFile}</p>` : '';
     
     dialog.innerHTML = `
-      <h3 style="margin-top: 0; color: #4CAF50;">🎉 录音完成！</h3>
-      <div style="margin: 20px 0; color: #ccc;">
-        <p>记录了 <strong>${recordHistory.length}</strong> 条字幕</p>
-        ${duration > 0 ? `<p>录音时长: <strong>${duration.toFixed(1)}</strong> 秒</p>` : ''}
-        ${audioDownloadedText}
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="width: 48px; height: 48px; background: #4CAF50; border-radius: 50%; margin: 0 auto 16px auto; display: flex; align-items: center; justify-content: center;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2 style="margin: 0 0 8px 0; color: #ffffff; font-size: 20px; font-weight: 600;">录音完成</h2>
+        <p style="margin: 0; color: #888; font-size: 14px;">录音和字幕已成功保存</p>
       </div>
-      <div style="margin: 25px 0; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px;">
+      
+      <div style="background: #333; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="color: #ccc; font-size: 14px;">字幕条数</span>
+          <span style="color: #fff; font-weight: 500;">${recordHistory.length} 条</span>
+        </div>
+        ${duration > 0 ? `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="color: #ccc; font-size: 14px;">录音时长</span>
+          <span style="color: #fff; font-weight: 500;">${duration.toFixed(1)} 秒</span>
+        </div>` : ''}
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: #ccc; font-size: 14px;">音频文件</span>
+          <span style="color: ${audioAvailable ? '#4CAF50' : '#ff6b6b'}; font-weight: 500;">${audioAvailable ? '已保存' : '不可用'}</span>
+        </div>
+      </div>
+      
+      <div style="display: flex; flex-direction: column; gap: 12px;">
         <button id="export-subtitles-btn" style="
           background: #4CAF50;
           color: white;
           border: none;
-          padding: 12px 20px;
-          border-radius: 6px;
+          padding: 14px 20px;
+          border-radius: 8px;
           cursor: pointer;
-          font-size: 14px;
+          font-size: 15px;
           font-weight: 500;
-          min-width: 120px;
-        ">📝 导出字幕</button>
-        <button id="export-audio-btn" style="
-          background: ${audioAvailable ? '#2196F3' : '#999'};
-          color: white;
-          border: none;
-          padding: 12px 20px;
-          border-radius: 6px;
-          cursor: ${audioAvailable ? 'pointer' : 'not-allowed'};
-          font-size: 14px;
-          font-weight: 500;
-          min-width: 120px;
-          opacity: ${audioAvailable ? '1' : '0.5'};
-        " ${audioAvailable ? '' : 'disabled'} title="${audioAvailable ? (window.isDualStreamRecording ? '打开录音文件夹' : '导出音频文件') : '音频文件不可用'}">${window.isDualStreamRecording ? '📁 打开文件夹' : '🎵 导出音频'}</button>
-        <button id="skip-export-btn" style="
-          background: #666;
-          color: white;
-          border: none;
-          padding: 12px 20px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 14px;
-          min-width: 120px;
-        ">⏭️ 跳过</button>
-      </div>
-      <div style="font-size: 12px; color: #888; margin-top: 15px;">
-        字幕文件为 TXT 格式，包含时间戳信息<br>
-        ${audioAvailable ? (window.isDualStreamRecording ? '音频文件已保存到本地，点击"打开文件夹"查看' : '音频文件为 WAV 格式，高质量录音') : '音频文件下载失败或不可用'}
+          width: 100%;
+          transition: all 0.2s ease;
+        ">导出字幕文件</button>
+        
+        <div style="display: flex; gap: 12px;">
+          <button id="export-audio-btn" style="
+            background: ${audioAvailable ? '#2196F3' : '#666'};
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: ${audioAvailable ? 'pointer' : 'not-allowed'};
+            font-size: 14px;
+            font-weight: 500;
+            flex: 1;
+            transition: all 0.2s ease;
+            opacity: ${audioAvailable ? '1' : '0.6'};
+          " ${audioAvailable ? '' : 'disabled'} title="${audioAvailable ? (window.isDualStreamRecording ? '打开录音文件夹' : '导出音频文件') : '音频文件不可用'}">${window.isDualStreamRecording ? '打开文件夹' : '导出音频'}</button>
+          
+          <button id="skip-export-btn" style="
+            background: transparent;
+            color: #ccc;
+            border: 1px solid #555;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            flex: 1;
+            transition: all 0.2s ease;
+          ">跳过</button>
+        </div>
       </div>
     `;
     
@@ -873,6 +950,39 @@ window.addEventListener('DOMContentLoaded', () => {
     const exportSubtitlesBtn = document.getElementById('export-subtitles-btn');
     const exportAudioBtn = document.getElementById('export-audio-btn');
     const skipBtn = document.getElementById('skip-export-btn');
+    
+    // 添加按钮悬停效果
+    exportSubtitlesBtn.addEventListener('mouseenter', () => {
+      exportSubtitlesBtn.style.background = '#45a049';
+      exportSubtitlesBtn.style.transform = 'translateY(-1px)';
+    });
+    exportSubtitlesBtn.addEventListener('mouseleave', () => {
+      exportSubtitlesBtn.style.background = '#4CAF50';
+      exportSubtitlesBtn.style.transform = 'translateY(0)';
+    });
+    
+    // 音频按钮悬停效果（仅在可用时）
+    if (!exportAudioBtn.disabled) {
+      exportAudioBtn.addEventListener('mouseenter', () => {
+        exportAudioBtn.style.background = '#1976D2';
+        exportAudioBtn.style.transform = 'translateY(-1px)';
+      });
+      exportAudioBtn.addEventListener('mouseleave', () => {
+        exportAudioBtn.style.background = '#2196F3';
+        exportAudioBtn.style.transform = 'translateY(0)';
+      });
+    }
+    
+    skipBtn.addEventListener('mouseenter', () => {
+      skipBtn.style.borderColor = '#777';
+      skipBtn.style.color = '#fff';
+      skipBtn.style.transform = 'translateY(-1px)';
+    });
+    skipBtn.addEventListener('mouseleave', () => {
+      skipBtn.style.borderColor = '#555';
+      skipBtn.style.color = '#ccc';
+      skipBtn.style.transform = 'translateY(0)';
+    });
     
     const cleanup = () => {
       if (document.body.contains(dialog)) {
@@ -1710,15 +1820,28 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     
     if (list.length > 0) {
+      let selectedDeviceId;
+      
       // 尝试恢复之前选择的设备
       const deviceExists = list.some(dev => dev.index == previouslySelectedDevice);
       if (deviceExists && previouslySelectedDevice) {
         deviceSelect.value = previouslySelectedDevice;
         currentDeviceId = previouslySelectedDevice;
+        selectedDeviceId = previouslySelectedDevice;
       } else {
         // 如果之前的设备不存在，才使用第一个设备
         deviceSelect.value = list[0].index;
         currentDeviceId = list[0].index;
+        selectedDeviceId = list[0].index;
+      }
+      
+      // 关键修复：自动启动选中设备的音频流
+      console.log('[Device] 自动启动音频流，设备ID:', selectedDeviceId);
+      if (window.subtitleAPI && window.subtitleAPI.switchDevice) {
+        window.subtitleAPI.switchDevice(selectedDeviceId);
+        console.log('[Device] 音频流已自动启动');
+      } else {
+        console.warn('[Device] switchDevice API不可用，无法启动音频流');
       }
     }
   }
@@ -2316,7 +2439,15 @@ window.addEventListener('DOMContentLoaded', () => {
           }
           waitWSReady(() => {
             setTimeout(() => {
-              if (currentDeviceId) window.subtitleAPI.switchDevice(currentDeviceId);
+              // 启动音频流：先尝试使用之前的设备，如果没有则等待设备列表
+              if (currentDeviceId) {
+                console.log('[WS] WebSocket就绪，使用之前的设备启动音频流:', currentDeviceId);
+                window.subtitleAPI.switchDevice(currentDeviceId);
+              } else {
+                console.log('[WS] WebSocket就绪，currentDeviceId为空，请求设备列表');
+              }
+              
+              // 请求设备列表（这会触发renderDeviceList中的自动启动逻辑）
               ws?.send(JSON.stringify({ get_device_list: true }));
             }, 200);
           });
