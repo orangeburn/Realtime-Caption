@@ -6,12 +6,21 @@ import json
 import sys
 import argparse
 import time
+import wave
+import os
+from datetime import datetime
+from pathlib import Path
 
 SAMPLE_RATE = 16000  # 后端固定要求16kHz
 CHANNELS = 1         # 后端要求单声道
 BIT_DEPTH = 16       # 后端要求16-bit
 CHUNK_DURATION = 0.5 # 0.5秒块大小
 CHUNK_SIZE = int(SAMPLE_RATE * CHUNK_DURATION)  # 8000 samples
+
+# 录音配置 - 高音质设置
+RECORD_SAMPLE_RATE = 44100  # 高质量录音采样率
+RECORD_CHANNELS = 2         # 立体声录音
+RECORD_BIT_DEPTH = 32       # 32-bit浮点深度
 
 def resample_audio(audio_data, source_rate, target_rate):
     """高质量音频重采样 - 支持任意采样率转换"""
@@ -429,8 +438,9 @@ def auto_select_audio_device():
     sys.exit(1)
 
 class AudioStreamer:
-    def __init__(self, device_index):
+    def __init__(self, device_index, output_dir="recordings"):
         self.device_index = device_index
+        self.output_dir = output_dir
         self.ws = None
         self.running = True
         self.audio_queue = None   # 延后初始化
@@ -443,6 +453,21 @@ class AudioStreamer:
         self.current_samplerate = SAMPLE_RATE  # 当前使用的采样率
         self.target_samplerate = SAMPLE_RATE   # 目标采样率（固定16kHz）
         self.device_channels = 1               # 设备使用的声道数
+        
+        # 录音相关功能
+        self.recording = False
+        self.recording_paused = False  # 新增：录音暂停状态
+        self.record_data = []
+        self.record_file = None
+        self.record_start_time = None
+        self.record_pause_start_time = None  # 新增：暂停开始时间
+        self.record_total_paused_time = 0    # 新增：累计暂停时间
+        self.record_audio_duration = 0       # 新增：基于音频数据的累积时长（秒）
+        self.record_samplerate = RECORD_SAMPLE_RATE
+        self.record_channels = RECORD_CHANNELS
+        
+        # 创建录音输出目录
+        Path(self.output_dir).mkdir(exist_ok=True)
 
     def audio_callback(self, indata, frames, time_info, status):
         if status:
@@ -453,6 +478,26 @@ class AudioStreamer:
             max_amplitude = np.max(np.abs(indata))
             print(f"🎤 原始音频: shape={indata.shape}, max_amp={max_amplitude:.4f}", end=" ")
             
+            # 检查音频是否为空或静音
+            if max_amplitude < 1e-6:  # 几乎静音
+                print("⚠️ 检测到静音或空音频")
+            
+            # 1. 保存原始高质量音频用于录音（只在未暂停时保存）
+            if self.recording and not self.recording_paused:
+                # 保存所有音频数据，包括静音部分（与ASR保持一致）
+                self.record_data.append(indata.copy())
+                # 计算累积音频时长（基于实际保存的音频数据）
+                chunk_duration = len(indata) / self.current_samplerate
+                self.record_audio_duration += chunk_duration
+                
+                if max_amplitude > 1e-6:
+                    print(f"[录音] 保存音频块: {indata.shape}, amp={max_amplitude:.4f}, 累积时长={self.record_audio_duration:.3f}s")
+                else:
+                    print(f"[录音] 保存静音块: {indata.shape}, amp={max_amplitude:.6f}, 累积时长={self.record_audio_duration:.3f}s")
+            elif self.recording and self.recording_paused:
+                print(f"[录音] 暂停中，跳过音频块: {len(indata)/self.current_samplerate:.3f}s")
+            
+            # 2. 处理音频用于ASR实时字幕
             # 第1步：转换为单声道
             audio_mono = convert_to_mono(indata)
             
@@ -504,6 +549,176 @@ class AudioStreamer:
             return None
         except Exception:
             return None
+
+    def get_current_audio_duration(self):
+        """获取当前录音的精确音频时长（秒）- 基于实际保存的音频数据"""
+        return self.record_audio_duration if self.recording else 0
+    
+    def start_recording(self, filename=None):
+        """开始录音"""
+        if self.recording:
+            return False, "已在录音中"
+        
+        try:
+            if filename is None:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"recording_{timestamp}.wav"
+            
+            self.record_file = os.path.join(self.output_dir, filename)
+            self.record_data = []
+            self.record_start_time = time.time()
+            self.record_audio_duration = 0  # 重置音频时长计数器
+            self.record_total_paused_time = 0  # 重置暂停时间
+            self.record_pause_start_time = None
+            self.recording_paused = False
+            self.recording = True
+            
+            print(f"🔴 开始录音: {self.record_file}")
+            return True, f"开始录音: {filename}"
+            
+        except Exception as e:
+            print(f"❌ 开始录音失败: {e}")
+            return False, str(e)
+
+    def pause_recording(self):
+        """暂停录音"""
+        if not self.recording:
+            return False, "当前未在录音"
+        
+        if self.recording_paused:
+            return False, "录音已经暂停"
+        
+        try:
+            self.recording_paused = True
+            self.record_pause_start_time = time.time()
+            
+            print(f"⏸️ 录音已暂停: {self.record_file}")
+            print(f"   暂停时间: {time.strftime('%H:%M:%S', time.localtime(self.record_pause_start_time))}")
+            
+            return True, f"录音已暂停"
+            
+        except Exception as e:
+            print(f"❌ 暂停录音失败: {e}")
+            return False, str(e)
+
+    def resume_recording(self):
+        """恢复录音"""
+        if not self.recording:
+            return False, "当前未在录音" 
+        
+        if not self.recording_paused:
+            return False, "录音未暂停"
+        
+        try:
+            # 计算本次暂停时长
+            if self.record_pause_start_time:
+                pause_duration = time.time() - self.record_pause_start_time
+                self.record_total_paused_time += pause_duration
+                print(f"▶️ 录音已恢复: {self.record_file}")
+                print(f"   本次暂停时长: {pause_duration:.1f}秒")
+                print(f"   总暂停时长: {self.record_total_paused_time:.1f}秒")
+            
+            self.recording_paused = False
+            self.record_pause_start_time = None
+            
+            return True, f"录音已恢复"
+            
+        except Exception as e:
+            print(f"❌ 恢复录音失败: {e}")
+            return False, str(e)
+
+    def stop_recording(self):
+        """停止录音并保存文件"""
+        if not self.recording:
+            return False, "当前未在录音"
+        
+        try:
+            # 如果正在暂停中，先计算最后的暂停时间
+            if self.recording_paused and self.record_pause_start_time:
+                final_pause_duration = time.time() - self.record_pause_start_time
+                self.record_total_paused_time += final_pause_duration
+                print(f"🔄 结算最后暂停时间: {final_pause_duration:.1f}秒")
+            
+            self.recording = False
+            self.recording_paused = False
+            
+            if not self.record_data:
+                return False, "没有录音数据"
+            
+            # 合并音频数据
+            audio_data = np.concatenate(self.record_data, axis=0)
+            
+            # 检查合并后的音频数据
+            total_amplitude = np.max(np.abs(audio_data))
+            average_amplitude = np.mean(np.abs(audio_data))
+            print(f"📊 合并音频数据: shape={audio_data.shape}, max_amp={total_amplitude:.6f}, avg_amp={average_amplitude:.6f}")
+            
+            # 更合理的音频质量检测
+            if total_amplitude < 1e-8:  # 放宽检测标准，只有完全无声才警告
+                print("⚠️ 警告：录音数据完全无声，可能是音频设备未连接")
+                print("⚠️ 继续保存录音文件，请检查音频设备配置")
+            elif total_amplitude < 1e-6:
+                print("⚠️ 警告：录音数据很小，可能是麦克风音量过低或环境很安静")
+                print("⚠️ 继续保存录音文件")
+            else:
+                print("✅ 录音数据正常")
+            
+            # 保存为WAV文件
+            with wave.open(self.record_file, 'wb') as wf:
+                wf.setnchannels(self.device_channels)
+                wf.setsampwidth(2)  # 改为16-bit = 2 bytes（更通用的格式）
+                wf.setframerate(self.current_samplerate)
+                
+                # 转换为int16保存（标准格式）
+                audio_normalized = np.clip(audio_data, -1.0, 1.0)
+                audio_int16 = (audio_normalized * 32767).astype(np.int16)
+                wf.writeframes(audio_int16.tobytes())
+                
+                print(f"💾 WAV文件保存: {self.device_channels}声道, 16-bit, {self.current_samplerate}Hz")
+            
+            duration = time.time() - self.record_start_time
+            # 使用基于音频数据的精确时长，而不是计算的暂停时间
+            effective_duration = self.record_audio_duration  # 这就是真实的音频播放时长
+            file_size = os.path.getsize(self.record_file) / (1024 * 1024)  # MB
+            
+            print(f"✅ 录音保存: {self.record_file}")
+            print(f"   总录制时长: {duration:.1f}秒")
+            print(f"   音频播放时长: {effective_duration:.1f}秒 (基于音频数据)")
+            print(f"   暂停时长: {self.record_total_paused_time:.1f}秒 (计算值)")
+            print(f"   文件大小: {file_size:.1f}MB")
+            
+            # 读取保存的音频文件并编码为十六进制字符串，供前端下载
+            audio_data_hex = None
+            try:
+                with open(self.record_file, 'rb') as f:
+                    audio_bytes = f.read()
+                    audio_data_hex = audio_bytes.hex()
+                    print(f"📦 音频数据已编码: {len(audio_bytes)} bytes -> {len(audio_data_hex)} hex chars")
+            except Exception as e:
+                print(f"❌ 读取音频文件失败: {e}")
+            
+            return True, {
+                "filename": os.path.basename(self.record_file),
+                "filepath": self.record_file,
+                "duration": duration,  # 总录制时长
+                "effective_duration": effective_duration,  # 音频播放时长（精确）
+                "audio_duration": self.record_audio_duration,  # 基于音频数据的时长
+                "paused_time": self.record_total_paused_time,  # 计算的暂停时长
+                "file_size": file_size,
+                "audio_data": audio_data_hex,  # 用于前端下载的十六进制数据
+                "format": f"{self.device_channels}ch_{self.current_samplerate}Hz_16bit",
+                "amplitude": {
+                    "max": total_amplitude,
+                    "average": average_amplitude
+                },
+                "quality": "normal" if total_amplitude > 1e-6 else "very_quiet" if total_amplitude > 1e-8 else "silent",
+                "data_chunks": len(self.record_data)  # 录音数据块数量
+            }
+            
+        except Exception as e:
+            self.recording = False
+            print(f"❌ 停止录音失败: {e}")
+            return False, str(e)
 
     async def send_audio(self):
         print("🚀 send_audio() 协程启动 ✅")
@@ -558,6 +773,67 @@ class AudioStreamer:
                             continue
                         if 'get_device_list' in data:
                             await self.send_device_list()
+                            continue
+                        # 处理录音控制命令
+                        if 'start_recording' in data:
+                            filename = data.get('filename')
+                            success, result = self.start_recording(filename)
+                            if success:
+                                response = {
+                                    "recording_started": True,
+                                    "data": result,
+                                    "start_time": self.record_start_time  # 使用Python录音开始时间
+                                }
+                            else:
+                                response = {
+                                    "type": "error",
+                                    "data": result
+                                }
+                            await self.ws.send(json.dumps(response))
+                            continue
+                        if 'stop_recording' in data:
+                            success, result = self.stop_recording()
+                            if success:
+                                response = {
+                                    "recording_completed": True,
+                                    "data": result
+                                }
+                            else:
+                                response = {
+                                    "type": "error", 
+                                    "data": result
+                                }
+                            await self.ws.send(json.dumps(response))
+                            continue
+                        # 处理录音暂停命令
+                        if 'pause_recording' in data:
+                            success, result = self.pause_recording()
+                            if success:
+                                response = {
+                                    "recording_paused": True,
+                                    "data": result
+                                }
+                            else:
+                                response = {
+                                    "type": "error",
+                                    "data": result
+                                }
+                            await self.ws.send(json.dumps(response))
+                            continue
+                        # 处理录音恢复命令
+                        if 'resume_recording' in data:
+                            success, result = self.resume_recording()
+                            if success:
+                                response = {
+                                    "recording_resumed": True,
+                                    "data": result
+                                }
+                            else:
+                                response = {
+                                    "type": "error",
+                                    "data": result
+                                }
+                            await self.ws.send(json.dumps(response))
                             continue
                         if 'text' in data:
                             print("💬 实时识别:", data['text'])
@@ -695,17 +971,25 @@ class AudioStreamer:
         self.running = False
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Audio capture and WebSocket streaming.")
-    parser.add_argument('--uri', type=str, default="ws://127.0.0.1:27000/ws/upload", help='WebSocket server URI.')
+    parser = argparse.ArgumentParser(description="音频采集和WebSocket流传输，集成高音质录音功能")
+    parser.add_argument('--uri', type=str, default="ws://127.0.0.1:27000/ws/upload", help='WebSocket服务器地址')
+    parser.add_argument('--output', type=str, default="recordings", help='录音输出目录')
     args = parser.parse_args()
 
     device_index = auto_select_audio_device()
-    streamer = AudioStreamer(device_index)
+    streamer = AudioStreamer(device_index, args.output)
+
+    print(f"\n✅ 音频服务配置完成")
+    print(f"   ASR设备: [{device_index}]")
+    print(f"   录音输出目录: {args.output}")
+    print(f"   功能: 实时字幕 + 高音质录音")
 
     try:
         asyncio.run(streamer.run(args.uri))
     except KeyboardInterrupt:
         print("\n🚦 退出程序，停止采集...")
         streamer.stop()
+        if streamer.recording:
+            streamer.stop_recording()
         time.sleep(1)
         print("✅ 程序结束。")
