@@ -1,5 +1,7 @@
 # 🗣️ Realtime Caption v2.0
 
+*[English](./README_EN.md) | 中文*
+
 > 当前版本：v2.0
 
 > 🎙️ 一款基于 [SenseVoice](https://github.com/FunAudioLLM/SenseVoice) 的本地实时字幕系统，支持高质量双流音频架构、语音识别、实时翻译与字幕浮窗显示，适用于会议记录、实时翻译、直播字幕等场景。
