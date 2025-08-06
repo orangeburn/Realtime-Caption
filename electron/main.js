@@ -13,7 +13,7 @@ function createWindow() {
     height: originalWindowSize.height,
     frame: false,        // 无边框
     alwaysOnTop: false,  // 默认不置顶，由固定按钮控制
-    transparent: false,   // 背景透明（配合 index.html rgba）
+    transparent: true,   // 启用背景透明（配合 index.html rgba）
     resizable: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

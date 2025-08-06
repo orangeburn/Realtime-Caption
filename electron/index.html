@@ -12,11 +12,12 @@
       margin: 0;
       width: 100%;
       height: 100%;
-      background: #1a1a1a;
+      background: rgba(26, 26, 26, 0.75); /* 调整背景透明度为75% */
       color: #ffffff;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       font-size: 16px;
       overflow: hidden;
+      position: relative;
     }
     
     .controls-container {
@@ -244,35 +245,26 @@
     }
     
     #subtitles {
-      padding: 80px 24px 24px 24px;
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      align-items: center;
-      text-align: center;
-      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
       position: relative;
     }
     
     .subtitles-container {
-      width: 100%;
-      max-width: 800px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      transition: transform 0.8s ease-out;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      width: auto;
+      max-width: 90%;
+      min-width: 300px;
+      z-index: 10;
     }
     
     .pair {
-      margin-bottom: 24px;
-      width: 100%;
-      max-width: 800px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      margin-bottom: 16px;
+      text-align: center;
       transition: opacity 0.8s ease-out;
     }
     
@@ -294,6 +286,7 @@
       font-weight: 400;
       padding: 8px 20px 4px 20px;
       margin-bottom: 0;
+      text-align: center;
     }
     
     .translated {
@@ -302,11 +295,12 @@
       font-weight: 500;
       padding: 4px 20px 8px 20px;
       margin-bottom: 0;
+      text-align: center;
     }
     
     .arabic {
       direction: rtl;
-      text-align: right;
+      text-align: center;
     }
     
     /* 启动日志样式 */
@@ -432,9 +426,9 @@
 
     /* 悬浮录音控制面板样式 */
     .floating-record-panel {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
+      position: absolute;
+      bottom: 5px;
+      right: 90px; /* 为字体大小菜单留出更多空间 */
       background: rgba(42, 42, 42, 0.95);
       border-radius: 12px;
       padding: 16px;
@@ -527,6 +521,103 @@
       }
     }
 
+    /* 字体大小调整菜单样式 */
+    .font-size-menu {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      z-index: 300;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    .font-size-menu.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    /* 记录模式下保持同样位置 */
+    body.record-mode .font-size-menu {
+      /* 保持在窗口右下角 5px 边距 */
+    }
+
+    .font-size-trigger {
+      background: rgba(42, 42, 42, 0.25); /* 背景透明度75% */
+      border: 1px solid #3a3a3a;
+      border-radius: 8px;
+      padding: 8px 12px;
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      user-select: none;
+      margin-bottom: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .font-size-trigger:hover {
+      background: rgba(58, 58, 58, 0.25); /* 悬停时背景透明度75% */
+      transform: scale(1.02);
+    }
+
+    .font-size-label {
+      font-size: 12px;
+      color: #ffffff;
+      white-space: nowrap;
+    }
+
+    .font-size-options {
+      background: rgba(42, 42, 42, 0.25); /* 背景透明度75% */
+      border: 1px solid #3a3a3a;
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      visibility: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      position: absolute;
+      bottom: 100%; /* 向上展开 */
+      right: 0;
+      margin-bottom: 4px; /* 与触发器的间距 */
+      min-width: 100%;
+    }
+
+    .font-size-menu.expanded .font-size-options {
+      opacity: 1;
+      transform: translateY(0);
+      visibility: visible;
+    }
+
+    .font-size-option {
+      padding: 10px 16px;
+      font-size: 14px;
+      color: #ffffff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .font-size-option:last-child {
+      border-bottom: none;
+    }
+
+    .font-size-option:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(4px);
+    }
+
+    .font-size-option.active {
+      background: rgba(0, 122, 255, 0.2);
+      color: #007aff;
+    }
+
+    .font-size-option.active:hover {
+      background: rgba(0, 122, 255, 0.3);
+    }
+
     /* 响应式 */
     @media (max-width: 768px) {
       .controls-container {
@@ -552,6 +643,44 @@
         width: 20px;
         height: 20px;
       }
+
+      .font-size-menu {
+        bottom: 5px;
+        right: 5px;
+      }
+
+      /* 移除记录模式下的特殊定位，保持在右下角 */
+    }
+  </style>
+  
+  <!-- 字体大小容器专用定位样式 -->
+  <style>
+    .font-size-menu {
+      position: absolute !important;
+      bottom: 5px !important;
+      right: 5px !important;
+      z-index: 300 !important;
+    }
+    
+    /* 记录模式下隐藏字体大小选择容器 */
+    body.record-mode .font-size-menu {
+      display: none !important;
+    }
+    
+    /* 记录模式下录音面板回到正确位置 */
+    body.record-mode .floating-record-panel {
+      position: fixed !important;
+      bottom: 20px !important;
+      right: 20px !important;
+    }
+    
+    .font-size-trigger {
+      position: relative !important; /* 确保选项菜单相对于触发器定位 */
+    }
+    
+    html, body {
+      height: 100% !important;
+      position: relative !important;
     }
   </style>
 </head>
@@ -563,7 +692,7 @@
           <path d="M544 830.4V960h-64v-129.6c-161.6-16-288-152.8-288-318.4h64c0 140.8 115.2 256 256 256s256-115.2 256-256h64c0 165.6-126.4 302.4-288 318.4zM512 640c70.4 0 128-57.6 128-128V192c0-70.4-57.6-128-128-128s-128 57.6-128 128v320c0 70.4 57.6 128 128 128z" fill="#ffffff" />
         </svg>
         <select id="audio-device">
-          <option value="">加载中...</option>
+          <option value="">Loading...</option>
         </select>
       </div>
       <div class="translation-toggle">
@@ -599,15 +728,15 @@
     </div>
     
     <div class="right-controls">
-      <!-- 固定窗口按钮 -->
-      <button id="pin-btn" class="pin-btn" title="固定窗口为最前">
+      <!-- Pin window button -->
+      <button id="pin-btn" class="pin-btn" title="Pin window to top">
         <svg class="pin-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
           <path d="M755.2 51.2c19.2 0 38.4 12.8 44.8 25.6l25.6 51.2c6.4 12.8 0 25.6-12.8 32l-108.8 51.2 102.4 102.4c44.8 44.8 44.8 115.2 0 160l-57.6 57.6c-44.8 44.8-115.2 44.8-160 0L486.4 428.8l-25.6 108.8c-6.4 12.8-19.2 19.2-32 12.8l-51.2-25.6c-12.8-6.4-25.6-25.6-25.6-44.8V268.8c0-51.2 38.4-89.6 89.6-89.6h313.6z m-25.6 64H441.6c-19.2 0-25.6 6.4-25.6 25.6v185.6l19.2 44.8 108.8-25.6c12.8-6.4 25.6 0 32 12.8l108.8 108.8c19.2 19.2 44.8 19.2 64 0l57.6-57.6c19.2-19.2 19.2-44.8 0-64L697.6 236.8c-12.8-6.4-19.2-19.2-12.8-32l25.6-108.8 19.2-44.8z m-185.6 473.6l-320 320c-12.8 12.8-32 12.8-44.8 0s-12.8-32 0-44.8l320-320c12.8-12.8 32-12.8 44.8 0s12.8 32 0 44.8z" />
         </svg>
       </button>
       
-      <!-- 关闭程序按钮 -->
-      <button id="close-btn" class="close-btn" title="关闭程序">
+      <!-- Close application button -->
+      <button id="close-btn" class="close-btn" title="Close application">
         <svg class="close-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
           <path d="M563.8 512l262.5-312.9c4.4-5.2 0.7-13.1-6.1-13.1h-79.8c-4.7 0-9.2 2.1-12.3 5.7L511.6 449.8 295.1 191.7c-3.1-3.6-7.6-5.7-12.3-5.7H203c-6.8 0-10.5 7.9-6.1 13.1L459.4 512 196.9 824.9A7.95 7.95 0 0 0 203 838h79.8c4.7 0 9.2-2.1 12.3-5.7l216.5-258.1 216.5 258.1c3.1 3.6 7.6 5.7 12.3 5.7h79.8c6.8 0 10.5-7.9 6.1-13.1L563.8 512z" />
         </svg>
@@ -642,7 +771,19 @@
     <!-- 录音状态指示器 -->
     <div class="recording-status">
       <span class="status-dot"></span>
-      <span class="status-text">待录音</span>
+      <span class="status-text">Record</span>
+    </div>
+  </div>
+
+  <!-- Font size adjustment menu -->
+  <div id="font-size-menu" class="font-size-menu">
+    <div class="font-size-trigger">
+      <span class="font-size-label">Font Size: <span id="current-font-size">Small</span></span>
+    </div>
+    <div class="font-size-options" id="font-size-options">
+      <div class="font-size-option" data-size="small">Small</div>
+      <div class="font-size-option" data-size="medium">Medium</div>
+      <div class="font-size-option" data-size="large">Large</div>
     </div>
   </div>
   

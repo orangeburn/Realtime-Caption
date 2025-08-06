@@ -216,7 +216,7 @@ window.addEventListener('DOMContentLoaded', () => {
       // 初始化记录显示区域（显示等待录音的状态）
       const recordContent = document.getElementById('record-content');
       if (recordContent) {
-        recordContent.innerHTML = '<div style="text-align: center; color: #888; padding: 40px;">点击录音按钮开始录音和字幕记录</div>';
+        recordContent.innerHTML = '<div style="text-align: center; color: #888; padding: 40px;">Click the record button to start recording and subtitle capture</div>';
       }
       
       updateRecordDisplay();
@@ -258,9 +258,7 @@ window.addEventListener('DOMContentLoaded', () => {
           console.log('[Record] 重建字幕容器结构');
         }
         
-        // 重置字幕高度和样式
-        subtitleHeight = 0;
-        subtitlesContainer.style.transform = 'translateY(0)';
+        // 重置字幕样式
         
         // 强制刷新字幕显示 - 先清空再重新渲染
         console.log('[Record] 强制刷新字幕显示，当前历史记录数量:', history.length);
@@ -294,7 +292,7 @@ window.addEventListener('DOMContentLoaded', () => {
       case 'idle':
         recordBtn.style.display = 'flex';
         stopBtn.style.display = 'none';
-        statusText.textContent = '待录音';
+        statusText.textContent = 'Idle';
         break;
         
       case 'recording':
@@ -302,14 +300,14 @@ window.addEventListener('DOMContentLoaded', () => {
         stopBtn.style.display = 'flex';
         statusElement.classList.add('recording');
         recordBtn.classList.add('recording');
-        statusText.textContent = '录音中';
+        statusText.textContent = 'Recording';
         break;
         
       case 'stopped':
         recordBtn.style.display = 'flex';
         stopBtn.style.display = 'none';
         statusElement.classList.add('stopped');
-        statusText.textContent = '已完成';
+        statusText.textContent = 'Completed';
         break;
     }
   }
@@ -1272,9 +1270,7 @@ window.addEventListener('DOMContentLoaded', () => {
           console.log('[Recording] 重建字幕容器结构');
         }
         
-        // 重置字幕高度和样式
-        subtitleHeight = 0;
-        subtitlesContainer.style.transform = 'translateY(0)';
+        // 重置字幕样式
         
         // 先清空容器内容，再重新渲染
         subtitlesContainer.innerHTML = '';
@@ -1564,11 +1560,11 @@ window.addEventListener('DOMContentLoaded', () => {
     if (recordHistory.length === 0) {
       // 根据录音状态显示不同的提示
       if (recordingState === 'idle') {
-        recordContent.innerHTML = '<div style="text-align: center; color: #888; padding: 40px;">点击录音按钮开始录音和字幕记录</div>';
+        recordContent.innerHTML = '<div style="text-align: center; color: #888; padding: 40px;">Click the record button to start recording and subtitle capture</div>';
       } else if (recordingState === 'recording') {
-        recordContent.innerHTML = '<div style="text-align: center; color: #4CAF50; padding: 40px;">🔴 录音中，等待字幕...</div>';
+        recordContent.innerHTML = '<div style="text-align: center; color: #4CAF50; padding: 40px;">🔴 Recording, waiting for subtitles...</div>';
       } else {
-        recordContent.innerHTML = '<div style="text-align: center; color: #888; padding: 40px;">暂无记录</div>';
+        recordContent.innerHTML = '<div style="text-align: center; color: #888; padding: 40px;">No records</div>';
       }
       return;
     }
@@ -1713,7 +1709,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     
     // 设置初始内容
-    subtitlesContainer.innerHTML = '<div class="pair"><div class="info">等待字幕中...</div></div>';
+    subtitlesContainer.innerHTML = '<div class="pair"><div class="info">Waiting for subtitles...</div></div>';
     console.log('[Startup] 字幕界面已初始化');
   }
 
@@ -1730,8 +1726,6 @@ window.addEventListener('DOMContentLoaded', () => {
     subtitleContainer.innerText = 'window.subtitleAPI 未注入，preload.js 可能未生效';
   }
 
-  let subtitleHeight = 0; // 追踪字幕总高度
-
   function renderSubtitles() {
     if (!subtitleContainer || isStartupMode) return;
     
@@ -1739,8 +1733,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!subtitlesContainer) return;
     
     if (history.length === 0) {
-      subtitlesContainer.innerHTML = '<div class="pair"><div class="info">等待字幕中...</div></div>';
-      subtitleHeight = 0;
+      subtitlesContainer.innerHTML = '<div class="pair"><div class="info">Waiting for subtitles...</div></div>';
       return;
     }
     
@@ -1776,30 +1769,17 @@ window.addEventListener('DOMContentLoaded', () => {
         subtitlesContainer.appendChild(pairElement);
       });
       
-      // 计算新字幕的高度并执行滚动
+      // 新字幕已添加，保持居中显示
       setTimeout(() => {
-        const newPairElements = Array.from(subtitlesContainer.children).slice(currentCount);
-        let newHeight = 0;
-        newPairElements.forEach(el => {
-          newHeight += el.offsetHeight;
-        });
-        
-        subtitleHeight += newHeight;
-        subtitlesContainer.style.transform = `translateY(-${subtitleHeight}px)`;
-        
         // 移除超出历史限制的旧字幕
         while (subtitlesContainer.children.length > MAX_HISTORY) {
           const firstChild = subtitlesContainer.firstChild;
-          const removedHeight = firstChild.offsetHeight;
-          subtitleHeight -= removedHeight;
           firstChild.remove();
-          subtitlesContainer.style.transform = `translateY(-${subtitleHeight}px)`;
         }
       }, 50);
     } else {
       // 重新渲染所有字幕（如翻译开关切换）
       subtitlesContainer.innerHTML = '';
-      subtitleHeight = 0;
       
       toShow.forEach((pair, index) => {
         const infoClass = isArabic(pair.text) ? 'info arabic' : 'info';
@@ -1823,8 +1803,6 @@ window.addEventListener('DOMContentLoaded', () => {
         
         subtitlesContainer.appendChild(pairElement);
       });
-      
-      subtitlesContainer.style.transform = 'translateY(0)';
     }
   }
 
@@ -2624,10 +2602,10 @@ window.addEventListener('DOMContentLoaded', () => {
         // 更新按钮状态
         if (isPinned) {
           pinBtn.classList.add('pinned');
-          pinBtn.title = '取消固定窗口';
+          pinBtn.title = 'Unpin window';
         } else {
           pinBtn.classList.remove('pinned');
-          pinBtn.title = '固定窗口为最前';
+          pinBtn.title = 'Pin window to top';
         }
         
         console.log(`[Window] 窗口置顶: ${isPinned ? '启用' : '禁用'}`);
@@ -2652,4 +2630,217 @@ window.addEventListener('DOMContentLoaded', () => {
     subtitleContainer.innerText = 'window.subtitleAPI 未注入，preload.js 可能未生效';
   }
   // 注意：WebSocket连接将在启动检查完成后由 finishStartup() 函数建立
+
+  // 字体大小管理功能
+  const fontSizeMenu = document.getElementById('font-size-menu');
+  const fontSizeTrigger = fontSizeMenu?.querySelector('.font-size-trigger');
+  const fontSizeOptions = document.getElementById('font-size-options');
+  const currentFontSizeSpan = document.getElementById('current-font-size');
+  const fontSizeOptionElements = fontSizeOptions?.querySelectorAll('.font-size-option');
+  
+  // Font size configuration
+  const fontSizeConfig = {
+    small: {
+      name: 'Small',
+      infoSize: 18,
+      translatedSize: 16
+    },
+    medium: {
+      name: 'Medium',
+      infoSize: 22,
+      translatedSize: 20
+    },
+    large: {
+      name: 'Large',
+      infoSize: 26,
+      translatedSize: 24
+    }
+  };
+
+  let currentFontSize = 'small'; // 默认为小字体
+  let fontSizeMenuVisible = false;
+  let fontSizeMenuExpanded = false;
+
+  // 初始化字体大小菜单
+  function initFontSizeMenu() {
+    if (!fontSizeMenu) return;
+
+    // 设置初始状态
+    updateFontSizeDisplay();
+    applyFontSize(currentFontSize);
+    
+    // 标记当前选中的选项
+    updateFontSizeSelection();
+
+    console.log('[FontSize] 字体大小菜单已初始化，当前字体:', currentFontSize);
+  }
+
+  // 更新字体大小显示文本
+  function updateFontSizeDisplay() {
+    if (currentFontSizeSpan) {
+      currentFontSizeSpan.textContent = fontSizeConfig[currentFontSize].name;
+    }
+  }
+
+  // 更新字体大小选项的选中状态
+  function updateFontSizeSelection() {
+    if (!fontSizeOptionElements) return;
+    
+    fontSizeOptionElements.forEach(option => {
+      const size = option.dataset.size;
+      if (size === currentFontSize) {
+        option.classList.add('active');
+      } else {
+        option.classList.remove('active');
+      }
+    });
+  }
+
+  // 应用字体大小到字幕显示
+  function applyFontSize(size) {
+    const config = fontSizeConfig[size];
+    if (!config) return;
+
+    // 获取字幕容器中的所有字幕元素
+    const infoElements = document.querySelectorAll('#subtitles .info');
+    const translatedElements = document.querySelectorAll('#subtitles .translated');
+
+    // 应用到原文字幕
+    infoElements.forEach(element => {
+      element.style.fontSize = config.infoSize + 'px';
+    });
+
+    // 应用到翻译字幕
+    translatedElements.forEach(element => {
+      element.style.fontSize = config.translatedSize + 'px';
+    });
+
+    // 更新CSS规则以确保新添加的字幕也使用新字体大小
+    updateFontSizeCSSRules(config);
+
+    console.log('[FontSize] 字体大小已应用:', size, config);
+  }
+
+  // 更新CSS规则
+  function updateFontSizeCSSRules(config) {
+    // 查找或创建字体大小样式表
+    let fontSizeStyleSheet = document.getElementById('font-size-styles');
+    if (!fontSizeStyleSheet) {
+      fontSizeStyleSheet = document.createElement('style');
+      fontSizeStyleSheet.id = 'font-size-styles';
+      document.head.appendChild(fontSizeStyleSheet);
+    }
+
+    // 更新CSS规则
+    fontSizeStyleSheet.textContent = `
+      #subtitles .info {
+        font-size: ${config.infoSize}px !important;
+      }
+      #subtitles .translated {
+        font-size: ${config.translatedSize}px !important;
+      }
+    `;
+  }
+
+  // 显示字体大小菜单
+  function showFontSizeMenu() {
+    if (!fontSizeMenu || fontSizeMenuVisible) return;
+    
+    fontSizeMenuVisible = true;
+    fontSizeMenu.classList.add('show');
+    console.log('[FontSize] 字体大小菜单已显示');
+  }
+
+  // 隐藏字体大小菜单
+  function hideFontSizeMenu() {
+    if (!fontSizeMenu || !fontSizeMenuVisible) return;
+    
+    fontSizeMenuVisible = false;
+    fontSizeMenuExpanded = false;
+    fontSizeMenu.classList.remove('show', 'expanded');
+    console.log('[FontSize] 字体大小菜单已隐藏');
+  }
+
+  // 切换字体大小菜单展开状态
+  function toggleFontSizeMenuExpanded() {
+    if (!fontSizeMenu) return;
+
+    fontSizeMenuExpanded = !fontSizeMenuExpanded;
+    if (fontSizeMenuExpanded) {
+      fontSizeMenu.classList.add('expanded');
+      console.log('[FontSize] 字体大小选项已展开');
+    } else {
+      fontSizeMenu.classList.remove('expanded');
+      console.log('[FontSize] 字体大小选项已收起');
+    }
+  }
+
+  // 设置字体大小
+  function setFontSize(size) {
+    if (!fontSizeConfig[size] || size === currentFontSize) return;
+
+    currentFontSize = size;
+    updateFontSizeDisplay();
+    updateFontSizeSelection();
+    applyFontSize(size);
+    
+    // 收起菜单
+    fontSizeMenuExpanded = false;
+    fontSizeMenu?.classList.remove('expanded');
+
+    console.log('[FontSize] 字体大小已设置为:', size, fontSizeConfig[size].name);
+  }
+
+  // 字体大小菜单事件监听器
+  if (fontSizeTrigger) {
+    fontSizeTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFontSizeMenuExpanded();
+    });
+  }
+
+  // 字体大小选项点击事件
+  if (fontSizeOptionElements) {
+    fontSizeOptionElements.forEach(option => {
+      option.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const size = option.dataset.size;
+        setFontSize(size);
+      });
+    });
+  }
+
+  // 点击其他地方关闭字体大小选项菜单
+  document.addEventListener('click', (e) => {
+    if (fontSizeMenu && !fontSizeMenu.contains(e.target)) {
+      fontSizeMenuExpanded = false;
+      fontSizeMenu.classList.remove('expanded');
+    }
+  });
+
+  // 字体大小菜单跟随鼠标悬停显示/隐藏
+  function updateFontSizeMenuVisibility() {
+    // 字体大小菜单独立显示，不依赖控制栏状态
+    // 鼠标悬停到窗口时显示，离开时隐藏
+  }
+
+  // 鼠标移动到窗口内时显示字体大小菜单
+  document.addEventListener('mousemove', () => {
+    if (!fontSizeMenuVisible) {
+      showFontSizeMenu();
+    }
+  });
+
+  // 鼠标进入窗口时显示字体大小菜单
+  document.addEventListener('mouseenter', () => {
+    showFontSizeMenu();
+  });
+
+  // 鼠标离开窗口时隐藏字体大小菜单
+  document.addEventListener('mouseleave', () => {
+    hideFontSizeMenu();
+  });
+
+  // 初始化字体大小菜单
+  initFontSizeMenu();
 });
