@@ -94,29 +94,29 @@ window.addEventListener('DOMContentLoaded', () => {
   
   initControlsVisibility();
 
-  // 初始显示控制栏，确保用户可以看到控制选项
+  // Initially show control bar to ensure users can see control options
   if (controlsContainer) {
-    // 延迟显示控制栏，确保DOM完全加载
+    // Delayed control bar display to ensure DOM is fully loaded
     setTimeout(() => {
       controlsContainer.classList.add('show');
-      console.log('[Controls] 控制栏已初始显示');
+      console.log('[Controls] Control bar initially displayed');
     }, 200);
   }
 
-  // 新增：WebSocket状态诊断函数
+  // New: WebSocket state diagnosis function
   function diagnoseWebSocketState() {
-    console.log('[WebSocket诊断] 开始检查WebSocket状态');
-    console.log('  window.subtitleAPI存在:', !!window.subtitleAPI);
-    console.log('  getCurrentWS函数存在:', !!window.subtitleAPI?.getCurrentWS);
+    console.log('[WebSocket Diagnosis] Starting WebSocket state check');
+    console.log('  window.subtitleAPI exists:', !!window.subtitleAPI);
+    console.log('  getCurrentWS function exists:', !!window.subtitleAPI?.getCurrentWS);
     
     const ws = window.subtitleAPI?.getCurrentWS?.();
-    console.log('  WebSocket对象:', ws);
-    console.log('  WebSocket对象详细信息:');
-    console.log('    - 类型:', typeof ws);
-    console.log('    - 是否为null/undefined:', ws == null);
-    console.log('    - 构造函数:', ws?.constructor?.name);
-    // 移除instanceof检查，因为在Electron上下文隔离中可能失败
-    console.log('    - 对象键值:', Object.keys(ws || {}));
+    console.log('  WebSocket object:', ws);
+    console.log('  WebSocket object details:');
+    console.log('    - Type:', typeof ws);
+    console.log('    - Is null/undefined:', ws == null);
+    console.log('    - Constructor:', ws?.constructor?.name);
+    // Remove instanceof check as it may fail in Electron context isolation
+    console.log('    - Object keys:', Object.keys(ws || {}));
     
     if (ws) {
       const stateMap = {
@@ -125,13 +125,13 @@ window.addEventListener('DOMContentLoaded', () => {
         2: 'CLOSING',
         3: 'CLOSED'
       };
-      const currentState = stateMap[ws.readyState] || `未知状态(${ws.readyState})`;
-      console.log('  WebSocket状态:', currentState, '(', ws.readyState, ')');
+      const currentState = stateMap[ws.readyState] || `Unknown state(${ws.readyState})`;
+      console.log('  WebSocket state:', currentState, '(', ws.readyState, ')');
       console.log('  WebSocket URL:', ws.url);
-      console.log('  WebSocket协议:', ws.protocol);
+      console.log('  WebSocket protocol:', ws.protocol);
       
-      // 检查是否有事件监听器和方法
-      console.log('  方法检查:');
+      // Check if there are event listeners and methods
+      console.log('  Method check:');
       console.log('    - onopen:', typeof ws.onopen, ws.onopen != null);
       console.log('    - onmessage:', typeof ws.onmessage, ws.onmessage != null);
       console.log('    - onerror:', typeof ws.onerror, ws.onerror != null);
@@ -139,43 +139,43 @@ window.addEventListener('DOMContentLoaded', () => {
       console.log('    - send:', typeof ws.send, typeof ws.send === 'function');
       console.log('    - close:', typeof ws.close, typeof ws.close === 'function');
       
-      // 检查WebSocket是否有效
+      // Check if WebSocket is valid
       const isValid = (
         typeof ws.send === 'function' &&
         typeof ws.close === 'function' &&
         typeof ws.readyState === 'number' &&
         ws.constructor?.name === 'WebSocket'
       );
-      console.log('  WebSocket有效性检查:', isValid);
+      console.log('  WebSocket validity check:', isValid);
     } else {
-      console.log('  WebSocket对象为null或undefined');
+      console.log('  WebSocket object is null or undefined');
       
-      // 尝试直接检查preload暴露的API
-      console.log('  检查subtitleAPI详细结构:');
+      // Try to directly check preload exposed API
+      console.log('  Check subtitleAPI detailed structure:');
       if (window.subtitleAPI) {
-        console.log('    - API对象键值:', Object.keys(window.subtitleAPI));
-        console.log('    - getCurrentWS类型:', typeof window.subtitleAPI.getCurrentWS);
+        console.log('    - API object keys:', Object.keys(window.subtitleAPI));
+        console.log('    - getCurrentWS type:', typeof window.subtitleAPI.getCurrentWS);
         
-        // 尝试直接调用并检查结果
+        // Try to directly call and check result
         try {
           const directResult = window.subtitleAPI.getCurrentWS();
-          console.log('    - 直接调用结果:', directResult);
-          console.log('    - 直接调用结果类型:', typeof directResult);
+          console.log('    - Direct call result:', directResult);
+          console.log('    - Direct call result type:', typeof directResult);
         } catch (e) {
-          console.log('    - 直接调用异常:', e);
+          console.log('    - Direct call exception:', e);
         }
       }
     }
   }
 
-  // 记录模式管理
+  // Recording mode management
   async function toggleRecordMode() {
-    // 如果当前在记录模式且正在录音，先弹出对话框确认
+    // If currently in recording mode and recording, show confirmation dialog first
     if (recordMode && recordingState !== 'idle') {
-      console.log('[Record] 记录模式下正在录音，弹出结束录音对话框');
-      pendingModeSwitch = true; // 标记需要在对话框关闭后切换模式
-      stopRecording(); // 这会触发录音结束和对话框显示
-      return; // 不继续执行模式切换，等待对话框操作
+      console.log('[Record] Recording in progress in recording mode, show end recording dialog');
+      pendingModeSwitch = true; // Mark that mode switch needs to be processed after dialog closes
+      stopRecording(); // This will trigger recording end and dialog display
+      return; // Don't continue with mode switch, wait for dialog operation
     }
     
     // 执行实际的模式切换
@@ -446,7 +446,7 @@ window.addEventListener('DOMContentLoaded', () => {
       console.error('[Recording] 启动录音失败:', error);
       recordingState = 'idle';
       updateRecordingUI();
-      alert(`启动录音失败: ${error.message}`);
+      alert(`Failed to start recording: ${error.message}`);
     }
   }
   
@@ -515,7 +515,7 @@ window.addEventListener('DOMContentLoaded', () => {
         
         // 尝试重连
         reconnectWS();
-        alert('录音停止失败：WebSocket连接断开\n\n正在尝试重连，请稍后重试');
+        alert('Recording stop failed: WebSocket connection lost\n\nAttempting to reconnect, please try again later');
       }
       
       recordingState = 'stopped';
@@ -702,15 +702,15 @@ window.addEventListener('DOMContentLoaded', () => {
             <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <h2 style="margin: 0 0 8px 0; color: #ffffff; font-size: 20px; font-weight: 600;">录音完成</h2>
-        <p style="margin: 0; color: #888; font-size: 14px;">录音和字幕已成功保存</p>
+        <h2 style="margin: 0 0 8px 0; color: #ffffff; font-size: 20px; font-weight: 600;">Recording Completed</h2>
+        <p style="margin: 0; color: #888; font-size: 14px;">Recording and subtitles saved successfully</p>
       </div>
       
       <div style="background: #333; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #444;">
           <div>
-            <span style="color: #ccc; font-size: 14px;">字幕条数</span>
-            <span style="color: #fff; font-weight: 500; margin-left: 8px;">${recordHistory.length}条</span>
+            <span style="color: #ccc; font-size: 14px;">Subtitle count</span>
+            <span style="color: #fff; font-weight: 500; margin-left: 8px;">${recordHistory.length} items</span>
           </div>
           <button id="export-subtitles-btn" style="
             background: #4CAF50;
@@ -722,13 +722,13 @@ window.addEventListener('DOMContentLoaded', () => {
             font-size: 12px;
             font-weight: 500;
             transition: all 0.2s ease;
-          ">导出</button>
+          ">Export</button>
         </div>
         
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #444;">
           <div>
-            <span style="color: #ccc; font-size: 14px;">录音文件</span>
-            <span style="color: #4CAF50; font-weight: 500; margin-left: 8px;">已保存</span>
+            <span style="color: #ccc; font-size: 14px;">Recording file</span>
+            <span style="color: #4CAF50; font-weight: 500; margin-left: 8px;">Saved</span>
           </div>
           <button id="export-audio-btn" style="
             background: #2196F3;
@@ -740,14 +740,14 @@ window.addEventListener('DOMContentLoaded', () => {
             font-size: 12px;
             font-weight: 500;
             transition: all 0.2s ease;
-          " title="打开录音文件夹">打开文件夹</button>
+          " title="Open recording folder">Open Folder</button>
         </div>
         
         ${duration > 0 ? `
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
           <div>
-            <span style="color: #ccc; font-size: 14px;">录音时长</span>
-            <span style="color: #fff; font-weight: 500; margin-left: 8px;">${duration.toFixed(1)}秒</span>
+            <span style="color: #ccc; font-size: 14px;">Recording duration</span>
+            <span style="color: #fff; font-weight: 500; margin-left: 8px;">${duration.toFixed(1)} seconds</span>
           </div>
         </div>` : ''}
       </div>
@@ -763,7 +763,7 @@ window.addEventListener('DOMContentLoaded', () => {
           font-size: 14px;
           font-weight: 500;
           transition: all 0.2s ease;
-        ">结束</button>
+        ">Finish</button>
       </div>
     `;
     
@@ -898,15 +898,15 @@ window.addEventListener('DOMContentLoaded', () => {
             <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <h2 style="margin: 0 0 8px 0; color: #ffffff; font-size: 20px; font-weight: 600;">录音完成</h2>
-        <p style="margin: 0; color: #888; font-size: 14px;">录音和字幕已成功保存</p>
+        <h2 style="margin: 0 0 8px 0; color: #ffffff; font-size: 20px; font-weight: 600;">Recording Completed</h2>
+        <p style="margin: 0; color: #888; font-size: 14px;">Recording and subtitles saved successfully</p>
       </div>
       
       <div style="background: #333; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #444;">
           <div>
-            <span style="color: #ccc; font-size: 14px;">字幕条数</span>
-            <span style="color: #fff; font-weight: 500; margin-left: 8px;">${recordHistory.length}条</span>
+            <span style="color: #ccc; font-size: 14px;">Subtitle count</span>
+            <span style="color: #fff; font-weight: 500; margin-left: 8px;">${recordHistory.length} items</span>
           </div>
           <button id="export-subtitles-btn" style="
             background: #4CAF50;
@@ -918,13 +918,13 @@ window.addEventListener('DOMContentLoaded', () => {
             font-size: 12px;
             font-weight: 500;
             transition: all 0.2s ease;
-          ">导出</button>
+          ">Export</button>
         </div>
         
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 8px 0; border-bottom: 1px solid #444;">
           <div>
-            <span style="color: #ccc; font-size: 14px;">录音文件</span>
-            <span style="color: ${audioAvailable ? '#4CAF50' : '#ff6b6b'}; font-weight: 500; margin-left: 8px;">${audioAvailable ? '已保存' : '不可用'}</span>
+            <span style="color: #ccc; font-size: 14px;">Recording file</span>
+            <span style="color: ${audioAvailable ? '#4CAF50' : '#ff6b6b'}; font-weight: 500; margin-left: 8px;">${audioAvailable ? 'Saved' : 'Unavailable'}</span>
           </div>
           <button id="export-audio-btn" style="
             background: ${audioAvailable ? '#2196F3' : '#666'};
@@ -937,14 +937,14 @@ window.addEventListener('DOMContentLoaded', () => {
             font-weight: 500;
             transition: all 0.2s ease;
             opacity: ${audioAvailable ? '1' : '0.6'};
-          " ${audioAvailable ? '' : 'disabled'} title="${audioAvailable ? (window.isDualStreamRecording ? '打开录音文件夹' : '导出音频文件') : '音频文件不可用'}">${window.isDualStreamRecording ? '打开文件夹' : '导出音频'}</button>
+          " ${audioAvailable ? '' : 'disabled'} title="${audioAvailable ? (window.isDualStreamRecording ? 'Open recording folder' : 'Export audio file') : 'Audio file unavailable'}">${window.isDualStreamRecording ? 'Open Folder' : 'Export Audio'}</button>
         </div>
         
         ${duration > 0 ? `
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
           <div>
-            <span style="color: #ccc; font-size: 14px;">录音时长</span>
-            <span style="color: #fff; font-weight: 500; margin-left: 8px;">${duration.toFixed(1)}秒</span>
+            <span style="color: #ccc; font-size: 14px;">Recording duration</span>
+            <span style="color: #fff; font-weight: 500; margin-left: 8px;">${duration.toFixed(1)} seconds</span>
           </div>
         </div>` : ''}
       </div>
@@ -960,7 +960,7 @@ window.addEventListener('DOMContentLoaded', () => {
           font-size: 14px;
           font-weight: 500;
           transition: all 0.2s ease;
-        ">结束</button>
+        ">Finish</button>
       </div>
     `;
     
@@ -1195,7 +1195,7 @@ window.addEventListener('DOMContentLoaded', () => {
       z-index: 10001;
       font-size: 14px;
     `;
-    successMessage.textContent = `音频文件已导出: ${filename}`;
+    successMessage.textContent = `Audio file exported: ${filename}`;
     document.body.appendChild(successMessage);
     
     // 3秒后自动移除提示
@@ -1312,14 +1312,14 @@ window.addEventListener('DOMContentLoaded', () => {
       }
       
       // 生成字幕文本
-      let subtitleText = `字幕记录 - ${new Date().toLocaleString()}\n`;
-      subtitleText += `总计 ${recordHistory.length} 条记录\n`;
+      let subtitleText = `Subtitle Records - ${new Date().toLocaleString()}\n`;
+      subtitleText += `Total ${recordHistory.length} records\n`;
       subtitleText += '='.repeat(50) + '\n\n';
       
       recordHistory.forEach((item, index) => {
         subtitleText += `[${item.timestamp}] ${item.original}\n`;
         if (item.translated && item.translated.trim()) {
-          subtitleText += `翻译: ${item.translated}\n`;
+          subtitleText += `Translation: ${item.translated}\n`;
         }
         subtitleText += '\n';
       });
@@ -1351,7 +1351,7 @@ window.addEventListener('DOMContentLoaded', () => {
         z-index: 10001;
         font-size: 14px;
       `;
-      successMessage.textContent = `字幕文件已导出: ${recordHistory.length}条记录`;
+      successMessage.textContent = `Subtitle file exported: ${recordHistory.length} records`;
       document.body.appendChild(successMessage);
       
       // 3秒后自动移除提示
@@ -1370,14 +1370,14 @@ window.addEventListener('DOMContentLoaded', () => {
   // 新增：导出常规字幕历史
   function exportRegularSubtitles() {
     try {
-      let subtitleText = `字幕记录 - ${new Date().toLocaleString()}\n`;
-      subtitleText += `总计 ${history.length} 条记录\n`;
+      let subtitleText = `Subtitle Records - ${new Date().toLocaleString()}\n`;
+      subtitleText += `Total ${history.length} records\n`;
       subtitleText += '='.repeat(50) + '\n\n';
       
       history.forEach((item, index) => {
         subtitleText += `[${index + 1}] ${item.text}\n`;
         if (item.translated && item.translated.trim() && translationEnabled) {
-          subtitleText += `翻译: ${item.translated}\n`;
+          subtitleText += `Translation: ${item.translated}\n`;
         }
         subtitleText += '\n';
       });
@@ -1409,7 +1409,7 @@ window.addEventListener('DOMContentLoaded', () => {
         z-index: 10001;
         font-size: 14px;
       `;
-      successMessage.textContent = `字幕文件已导出: ${history.length}条记录`;
+      successMessage.textContent = `Subtitle file exported: ${history.length} records`;
       document.body.appendChild(successMessage);
       
       // 3秒后自动移除提示
@@ -1650,7 +1650,7 @@ window.addEventListener('DOMContentLoaded', () => {
     
     if (!subtitleContainer.classList.contains('startup-mode')) {
       subtitleContainer.classList.add('startup-mode');
-      subtitleContainer.innerHTML = '<div class="progress">🚀 系统启动中...</div>';
+      subtitleContainer.innerHTML = '<div class="progress">🚀 System starting...</div>';
     }
     
     const logLine = document.createElement('div');
@@ -1821,7 +1821,7 @@ window.addEventListener('DOMContentLoaded', () => {
     list.forEach((dev, idx) => {
       const opt = document.createElement('option');
       opt.value = dev.index;
-      opt.textContent = dev.name || `设备${idx}`;
+      opt.textContent = dev.name || `Device ${idx}`;
       deviceSelect.appendChild(opt);
     });
     
@@ -1941,9 +1941,9 @@ window.addEventListener('DOMContentLoaded', () => {
         prepareDialog.innerHTML = `
           <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
             <div style="width: 20px; height: 20px; border: 2px solid #4CAF50; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px;"></div>
-            <span style="font-size: 16px; font-weight: 500;">准备音频下载...</span>
+            <span style="font-size: 16px; font-weight: 500;">Preparing Audio Download...</span>
           </div>
-          <div style="font-size: 14px; color: #ccc;">录音已完成，正在准备高质量音频文件</div>
+          <div style="font-size: 14px; color: #ccc;">Recording completed, preparing high-quality audio file</div>
           <style>
             @keyframes spin {
               0% { transform: rotate(0deg); }
@@ -1953,13 +1953,13 @@ window.addEventListener('DOMContentLoaded', () => {
         `;
         document.body.appendChild(prepareDialog);
         
-        // 设置下载准备超时（60秒）
+        // Set download preparation timeout (60 seconds)
         window.downloadPrepareTimeoutId = setTimeout(() => {
           if (document.body.contains(prepareDialog)) {
             document.body.removeChild(prepareDialog);
           }
-          console.warn('[Recording] 下载准备超时');
-          alert('音频下载准备超时\n\n录音已完成并保存，但下载准备时间过长\n建议：检查网络连接或重启应用');
+          console.warn('[Recording] Download preparation timeout');
+          alert('Audio download preparation timeout\n\nRecording has been completed and saved, but download preparation took too long\nSuggestion: Check network connection or restart application');
         }, 60000);
         
         return; // 等待 audio_download_ready 消息
@@ -2024,12 +2024,12 @@ window.addEventListener('DOMContentLoaded', () => {
           switch (quality) {
             case 'silent':
               backgroundColor = '#f44336'; // 红色
-              messageText = `⚠️ 录音文件已导出，但检测到完全静音<br><small>文件: ${window.lastDownloadedAudioFile}<br>可能原因：音频设备未连接或被静音</small>`;
+              messageText = `⚠️ Audio file exported, but detected complete silence<br><small>File: ${window.lastDownloadedAudioFile}<br>Possible cause: Audio device not connected or muted</small>`;
               displayTime = 10000;
               break;
             case 'very_quiet':
               backgroundColor = '#FF9800'; // 橙色
-              messageText = `⚠️ 录音文件已导出，但音频很安静<br><small>文件: ${window.lastDownloadedAudioFile}<br>建议：检查麦克风音量或环境噪音</small>`;
+              messageText = `⚠️ Audio file exported, but audio is very quiet<br><small>File: ${window.lastDownloadedAudioFile}<br>Suggestion: Check microphone volume or ambient noise</small>`;
               displayTime = 8000;
               break;
             default:
@@ -2101,7 +2101,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const isDualStreamSuccess = recordingSuccessful && hasRecordingFiles && data.data.dual_stream_files;
         
         if (isDualStreamSuccess) {
-          console.log('[Recording] ✅ 双流架构录音成功完成');
+          console.log('[Recording] ✅ Dual-stream recording completed successfully');
           
           // 设置双流架构标志
           window.isDualStreamRecording = true;
@@ -2124,9 +2124,9 @@ window.addEventListener('DOMContentLoaded', () => {
           `;
           
           const files = data.data.dual_stream_files;
-          let fileInfo = `<br><small>已生成 ${files.length} 个录音文件</small>`;
+          let fileInfo = `<br><small> ${files.length} recording files have been generated</small>`;
           
-          successMessage.innerHTML = `✅ 录音已成功完成并保存${fileInfo}`;
+          successMessage.innerHTML = `✅ The recording has been successfully completed and saved${fileInfo}`;
           document.body.appendChild(successMessage);
           
           setTimeout(() => {
@@ -2146,12 +2146,12 @@ window.addEventListener('DOMContentLoaded', () => {
           const audioAvailable = isDualStreamSuccess || hasAudio;
           showExportOptions(duration, audioAvailable);
         } else {
-          console.log('[Recording] 导出对话框已显示，跳过重复显示');
+          console.log('[Recording] The export dialog has been displayed; skipping duplicate display');
         }
         
         // 只有当录音真正失败时才显示错误消息
         if (data.success === false) {
-          alert('录音完成，但音频保存失败: ' + (data.message || '未知错误') + '\n\n字幕数据仍可导出');
+          alert('The recording was completed, but the audio failed to save: ' + (data.message || 'Unknown error') + '\n\nThe subtitle data can still be exported');
         } else if (recordingSuccessful && hasRecordingFiles && !isDualStreamSuccess) {
           // 录音文件已成功保存到磁盘，但没有通过WebSocket传输（可能是单流架构）
           console.log('[Recording] 录音文件已保存到磁盘，使用"打开录音文件夹"功能访问文件');
@@ -2219,7 +2219,7 @@ window.addEventListener('DOMContentLoaded', () => {
             z-index: 10000;
             font-size: 14px;
           `;
-          successMessage.textContent = `音频文件已成功导出: ${window.lastDownloadedAudioFile}`;
+          successMessage.textContent = `Audio file exported successfully: ${window.lastDownloadedAudioFile}`;
           document.body.appendChild(successMessage);
           
           // 3秒后自动移除提示
