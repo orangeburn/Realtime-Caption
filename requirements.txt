@@ -1,0 +1,50 @@
+# Core audio processing dependencies
+sounddevice>=0.4.6              #   ƌ >
+numpy>=1.24.0                   # p<   @ 
+scipy>=1.11.0                   #  f     
+librosa>=0.10.0                 #     		
+soundfile>=0.12.0               #     
+
+# WebSocket communication
+websockets>=11.0                # WebSocket 
+fastapi>=0.104.0                # Web APIF 
+uvicorn>=0.24.0                 # ASGI
+ h
+pydantic>=2.4.0                 # pn  
+fastapi-websocket-rpc>=0.11.0   # WebSocket RPC/
+
+# AI model dependencies
+transformers>=4.30.0            # HuggingFace Transformers
+torch>=2.0.0                    # PyTorch f`F 
+sentencepiece>=0.1.97           # SentencePiece h
+loguru>=0.7.0                   #  װU
+
+# Model serving and optimization
+ctranlate2>=3.23.0              # CTranslate2  
+modelscope>=1.13.0              # ModelScope! 
+ 
+funasr>=0.0.11                  # FunASR   +
+
+# HTTP requests and utilities
+requests>=2.31.0                # HTTP B 
+urllib3>=2.0.0                  # URL 
+
+# GUI and interface
+tkinter                               #   GUI Python n	
+pillow>=10.0.0                #   
+
+# System and utilities
+pathlib2>=2.3.0                 #   \| '	
+typing>=3.7.0                   # {   /
+threading                       #  
+Python n	
+datetime                        #    Python n	
+hashlib                       #    Python n	
+tempfile                        # 4   Python n	
+shutil                          #    \Python n	
+json                            # JSONPython n	
+argparse                        # } L pPython n	
+time                            #   Python n	
+os                              #    \Python n	
+sys                             #    pPython n	
+wave                            # WAV  Python n	
